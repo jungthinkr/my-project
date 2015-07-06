@@ -13,10 +13,10 @@
 @property (strong, nonatomic) IBOutlet UIButton *addFriend;
 
 @property (nonatomic, strong) NSMutableArray *arrContactsData;
+@property (nonatomic, strong) NSMutableArray *arrNumbers;
 @property (nonatomic, strong) NSMutableArray *insideFriends;
 @property (nonatomic, strong) NSMutableArray *outsideFriends;
 @property (nonatomic, strong) NSMutableArray *allFriends;
-@property (nonatomic, strong) NSArray *arrayOfNumbers;
 @property (nonatomic, strong) NSMutableArray *indexfortable;
 @property (nonatomic, strong) ABPeoplePickerNavigationController *addressBookController;
 @end
@@ -62,17 +62,25 @@
     
 
         _insideFriends = [[NSMutableArray alloc] init];
-
-
         _outsideFriends = [[NSMutableArray alloc] init];
     
     NSUInteger index = 0;
         
-for (id data in _arrContactsData)
-{
+/*
     PFQuery *query = [PFUser query];
-    [query whereKey:@"username" equalTo:[self formatNumber:[data objectForKey:@"mobileNumber"]]];
-    PFObject *user = [query getFirstObject];
+    [query whereKey:@"username" containedIn: _arrNumbers];
+    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+        
+        NSLog(@"OBJECTS AFTER QUERY %@", objects);
+        
+    }];*/
+  
+
+    for (id data in _arrContactsData)
+    {
+          PFQuery *query2= [PFUser query];
+        [query2 whereKey:@"username" equalTo:[self formatNumber:[data objectForKey:@"number"]]];
+    PFObject *user = [query2 getFirstObject];
     if ([user objectForKey:@"username"] != nil) {
         [_insideFriends addObject: data];
         
@@ -82,7 +90,7 @@ for (id data in _arrContactsData)
         
     }
          index++;
-}// end for loop
+    }// end for loop*/
     NSLog(@"updatenumbers" );
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.tableView reloadData];
@@ -101,32 +109,24 @@ for (id data in _arrContactsData)
     }
 
 }
-- (void)Parse
+/*- (void)Parse
 {
     NSLog(@"parse");
     for(id data in _arrContactsData)
     {
         
-
-               
-        NSMutableDictionary *friend = [[NSMutableDictionary alloc]
-                                                initWithObjects:@[@"", @"", @""]
-                                                forKeys:@[@"FirstName", @"LastName", @"Number"]];
-
-                friend[@"FirstName"] = [data objectForKey:@"firstName"];
-                friend[@"LastName"] = [data objectForKey:@"lastName"];
-                friend[@"Number"] = [self formatNumber:[data objectForKey:@"mobileNumber"]];
        
-                [[PFUser currentUser] addUniqueObject:friend forKey: @"Contacts"];
+                [[PFUser currentUser] addUniqueObject:data forKey: @"Contacts"];
                 [[PFUser currentUser] saveInBackground];
 
     }//end for loop
     [self updateNumbers];
-}
+}*/
+-(void)getContacts
+{}
 -(void)findRelation
 {
-    PFQuery *gameQuery = [PFQuery queryWithClassName:@"Game"];
-    [gameQuery whereKey:@"createdBy" equalTo:[PFUser currentUser]];
+
 }
 #pragma mark - Hash number
 -(NSString*)formatNumber:(NSString*)mobileNumber
@@ -220,7 +220,7 @@ else{
         // add friend button
         addFriendButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         addFriendButton.frame = CGRectMake(213.0f, 5.0f, 100.0f, 30.0f);
-        [addFriendButton setTitle:@"Add" forState:UIControlStateNormal];
+      //  [addFriendButton setTitle:@"Add" forState:UIControlStateNormal];
         [cell addSubview:addFriendButton];
         [addFriendButton addTarget:self
                             action:@selector(addFriend:)
@@ -234,7 +234,7 @@ else{
         cell.textLabel.text = [NSString stringWithFormat:@"%@ %@", [contactInfoDict objectForKey:@"firstName"], [contactInfoDict objectForKey:@"lastName"]];
         sendInviteButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
         sendInviteButton.frame = CGRectMake(200, 5.0f, 100.0f, 30.0f);
-        [sendInviteButton setTitle:@"Send Invite" forState:UIControlStateNormal];
+     //   [sendInviteButton setTitle:@"Send Invite" forState:UIControlStateNormal];
         
         [cell addSubview:sendInviteButton];
         [sendInviteButton addTarget:self
@@ -248,144 +248,166 @@ else{
 
 #pragma mark - get Contacts
 - (IBAction)syncContacts:(id)sender {
-
-
- 
+    
     CFErrorRef *error = NULL;
     ABAddressBookRef addressBookRef = ABAddressBookCreateWithOptions(NULL, error);
- 
- 
-     if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusNotDetermined) {
-     ABAddressBookRequestAccessWithCompletion(addressBookRef, ^(bool granted, CFErrorRef error) {
-         if (granted) {
-             CFArrayRef allPeople = ABAddressBookCopyArrayOfAllPeople(addressBookRef);
-             CFIndex numberOfPeople = ABAddressBookGetPersonCount(addressBookRef);
-             
-             for(int i = 0; i < numberOfPeople; i++) {
-                 NSMutableDictionary *contactInfoDict = [[NSMutableDictionary alloc]
-                                                         initWithObjects:@[@"", @"", @"", @""]
-                                                         forKeys:@[@"firstName", @"lastName", @"mobileNumber", @"homeNumber"]];
-                 ABRecordRef person = CFArrayGetValueAtIndex( allPeople, i );
-                 
-                 CFTypeRef generalCFObject = (ABRecordCopyValue(person, kABPersonFirstNameProperty));
-                 CFTypeRef generalCFObject2 = (ABRecordCopyValue(person, kABPersonLastNameProperty));
-                 
-                 [contactInfoDict setObject:(__bridge NSString *)generalCFObject forKey:@"firstName"];
-                 CFRelease(generalCFObject);
-                 
-                 [contactInfoDict setObject:(__bridge NSString *)generalCFObject2 forKey:@"lastName"];
-                 CFRelease(generalCFObject2);
-                 
-                 ABMultiValueRef phoneNumbers = ABRecordCopyValue(person, kABPersonPhoneProperty);
-                 
-                 for (CFIndex j = 0; j < ABMultiValueGetCount(phoneNumbers); j++) {
-                     CFStringRef currentPhoneLabel = ABMultiValueCopyLabelAtIndex(phoneNumbers, j);
-                     CFStringRef currentPhoneValue = ABMultiValueCopyValueAtIndex(phoneNumbers, j);
-                     
-                     if (CFStringCompare(currentPhoneLabel, kABPersonPhoneMobileLabel, 0) == kCFCompareEqualTo) {
-                         [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"mobileNumber"];
-                     }
-                     
-                     else if (CFStringCompare(currentPhoneLabel, kABHomeLabel, 0) == kCFCompareEqualTo) {
-                         [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"mobileNumber"];
-                     }
-                     else if (CFStringCompare(currentPhoneLabel, kABWorkLabel, 0) == kCFCompareEqualTo) {
-                         [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"mobileNumber"];
-                     }
-                     
-                     CFRelease(currentPhoneLabel);
-                     CFRelease(currentPhoneValue);
-                 }
-                 CFRelease(phoneNumbers);
-                 // Initialize the array if it's not yet initialized.
-                 if (_arrContactsData == nil) {
-                     _arrContactsData = [[NSMutableArray alloc] init];
-                 }
-                 // Add the dictionary to the array.
-                 _arrContactsData[i]=contactInfoDict;
-                 
-              
-
-                 
-                 
-                 
-             }
-             
-      [self Parse];
-             
-
-     } else {
-         [self performSegueWithIdentifier:@"showLogin" sender:self];
-     //SEND BACK TO LOG IN SCREEN
-     }
-     });
-     }
-     else if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusAuthorized) {
-         CFArrayRef allPeople = ABAddressBookCopyArrayOfAllPeople(addressBookRef);
-         CFIndex numberOfPeople = ABAddressBookGetPersonCount(addressBookRef);
-         
-         for(int i = 0; i < numberOfPeople; i++) {
-             NSMutableDictionary *contactInfoDict = [[NSMutableDictionary alloc]
-                                                     initWithObjects:@[@"", @"", @"", @""]
-                                                     forKeys:@[@"firstName", @"lastName", @"mobileNumber", @"homeNumber"]];
-             ABRecordRef person = CFArrayGetValueAtIndex( allPeople, i );
-             
-             CFTypeRef generalCFObject = (ABRecordCopyValue(person, kABPersonFirstNameProperty));
-             CFTypeRef generalCFObject2 = (ABRecordCopyValue(person, kABPersonLastNameProperty));
-             
-             [contactInfoDict setObject:(__bridge NSString *)generalCFObject forKey:@"firstName"];
-             CFRelease(generalCFObject);
-             
-             [contactInfoDict setObject:(__bridge NSString *)generalCFObject2 forKey:@"lastName"];
-             CFRelease(generalCFObject2);
-             
-             ABMultiValueRef phoneNumbers = ABRecordCopyValue(person, kABPersonPhoneProperty);
-             
-             for (CFIndex j = 0; j < ABMultiValueGetCount(phoneNumbers); j++) {
-                 CFStringRef currentPhoneLabel = ABMultiValueCopyLabelAtIndex(phoneNumbers, j);
-                 CFStringRef currentPhoneValue = ABMultiValueCopyValueAtIndex(phoneNumbers, j);
-                 
-                 if (CFStringCompare(currentPhoneLabel, kABPersonPhoneMobileLabel, 0) == kCFCompareEqualTo) {
-                     [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"mobileNumber"];
-                 }
-                 
-                 else if (CFStringCompare(currentPhoneLabel, kABHomeLabel, 0) == kCFCompareEqualTo) {
-                     [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"mobileNumber"];
-                 }
-                 else if (CFStringCompare(currentPhoneLabel, kABWorkLabel, 0) == kCFCompareEqualTo) {
-                     [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"mobileNumber"];
-                 }
-                 
-                 CFRelease(currentPhoneLabel);
-                 CFRelease(currentPhoneValue);
-             }
-             CFRelease(phoneNumbers);
-             // Initialize the array if it's not yet initialized.
-             if (_arrContactsData == nil) {
-                 _arrContactsData = [[NSMutableArray alloc] init];
-             }
-             // Add the dictionary to the array.
-             _arrContactsData[i]=contactInfoDict;
-        
-           
-       
-             
-             
-             
-         }
-           [self Parse];
-     }
-     else {
-         [self performSegueWithIdentifier:@"showLogin" sender:self];
-     }
     
-  
+    
+    if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusNotDetermined) {
+        ABAddressBookRequestAccessWithCompletion(addressBookRef, ^(bool granted, CFErrorRef error) {
+            if (granted) {
+                CFArrayRef allPeople = ABAddressBookCopyArrayOfAllPeople(addressBookRef);
+                CFIndex numberOfPeople = ABAddressBookGetPersonCount(addressBookRef);
+                
+                for(int i = 0; i < numberOfPeople; i++) {
+                    NSMutableDictionary *contactInfoDict = [[NSMutableDictionary alloc]
+                                                            initWithObjects:@[@"", @"", @""]
+                                                            forKeys:@[@"firstName", @"lastName", @"number"]];
+                    ABRecordRef person = CFArrayGetValueAtIndex( allPeople, i );
+                    
+                    // Use a general Core Foundation object.
+                    CFTypeRef generalCFObject = ABRecordCopyValue(person, kABPersonFirstNameProperty);
+                    
+                    // Get the first name.
+                    if (generalCFObject) {
+                        [contactInfoDict setObject:(__bridge NSString *)generalCFObject forKey:@"firstName"];
+                        CFRelease(generalCFObject);
+                    }
+                    
+                    // Get the last name.
+                    generalCFObject = ABRecordCopyValue(person, kABPersonLastNameProperty);
+                    if (generalCFObject) {
+                        [contactInfoDict setObject:(__bridge NSString *)generalCFObject forKey:@"lastName"];
+                        CFRelease(generalCFObject);
+                    }
+                    
+                    ABMultiValueRef phoneNumbers = ABRecordCopyValue(person, kABPersonPhoneProperty);
+                    
+                    for (CFIndex j = 0; j < ABMultiValueGetCount(phoneNumbers); j++) {
+                        CFStringRef currentPhoneLabel = ABMultiValueCopyLabelAtIndex(phoneNumbers, j);
+                        CFStringRef currentPhoneValue = ABMultiValueCopyValueAtIndex(phoneNumbers, j);
+                        
+                        if (CFStringCompare(currentPhoneLabel, kABPersonPhoneMobileLabel, 0) == kCFCompareEqualTo) {
+                            [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"number"];
+                        }
+                        
+                        else if (CFStringCompare(currentPhoneLabel, kABHomeLabel, 0) == kCFCompareEqualTo) {
+                            [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"number"];
+                        }
+                        else if (CFStringCompare(currentPhoneLabel, kABWorkLabel, 0) == kCFCompareEqualTo) {
+                            [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"number"];
+                        }
+                        
+                        CFRelease(currentPhoneLabel);
+                        CFRelease(currentPhoneValue);
+                    }
+                    CFRelease(phoneNumbers);
+                    // Initialize the array if it's not yet initialized.
+                    if (_arrContactsData == nil) {
+                        _arrContactsData = [[NSMutableArray alloc] init];
+                    }
+                    if(_arrNumbers == nil) {
+                        _arrNumbers = [[NSMutableArray alloc] init];
+                    }
 
+                    // Add the dictionary to the array.
+                    _arrContactsData[i]=contactInfoDict;
+                    _arrNumbers[i] = [self formatNumber:[contactInfoDict objectForKey:@"number"]];
+                    
+                    
+                    
+                    
+                    
+                }
+                
+                [self updateNumbers];
+                
+                
+            } else {
+                [self performSegueWithIdentifier:@"showLogin" sender:self];
+                //SEND BACK TO LOG IN SCREEN
+            }
+        });
+    }
+    else if (ABAddressBookGetAuthorizationStatus() == kABAuthorizationStatusAuthorized) {
+        CFArrayRef allPeople = ABAddressBookCopyArrayOfAllPeople(addressBookRef);
+        CFIndex numberOfPeople = ABAddressBookGetPersonCount(addressBookRef);
+        
+        for(int i = 0; i < numberOfPeople; i++) {
+            NSMutableDictionary *contactInfoDict = [[NSMutableDictionary alloc]
+                                                    initWithObjects:@[@"", @"", @""]
+                                                    forKeys:@[@"firstName", @"lastName", @"number"]];
+            ABRecordRef person = CFArrayGetValueAtIndex( allPeople, i );
+            // Use a general Core Foundation object.
+            CFTypeRef generalCFObject = ABRecordCopyValue(person, kABPersonFirstNameProperty);
+            
+            // Get the first name.
+            if (generalCFObject) {
+                [contactInfoDict setObject:(__bridge NSString *)generalCFObject forKey:@"firstName"];
+                CFRelease(generalCFObject);
+            }
+            
+            // Get the last name.
+            generalCFObject = ABRecordCopyValue(person, kABPersonLastNameProperty);
+            if (generalCFObject) {
+                [contactInfoDict setObject:(__bridge NSString *)generalCFObject forKey:@"lastName"];
+                CFRelease(generalCFObject);
+            }
+            
+            
+            ABMultiValueRef phoneNumbers = ABRecordCopyValue(person, kABPersonPhoneProperty);
+            
+            for (CFIndex j = 0; j < ABMultiValueGetCount(phoneNumbers); j++) {
+                CFStringRef currentPhoneLabel = ABMultiValueCopyLabelAtIndex(phoneNumbers, j);
+                CFStringRef currentPhoneValue = ABMultiValueCopyValueAtIndex(phoneNumbers, j);
+                
+                if (CFStringCompare(currentPhoneLabel, kABPersonPhoneMobileLabel, 0) == kCFCompareEqualTo) {
+                    [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"number"];
+                }
+                
+                else if (CFStringCompare(currentPhoneLabel, kABHomeLabel, 0) == kCFCompareEqualTo) {
+                    [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"number"];
+                }
+                else if (CFStringCompare(currentPhoneLabel, kABWorkLabel, 0) == kCFCompareEqualTo) {
+                    [contactInfoDict setObject:(__bridge NSString *)currentPhoneValue forKey:@"number"];
+                }
+                
+                CFRelease(currentPhoneLabel);
+                CFRelease(currentPhoneValue);
+            }
+            CFRelease(phoneNumbers);
+            // Initialize the array if it's not yet initialized.
+            if (_arrContactsData == nil) {
+                _arrContactsData = [[NSMutableArray alloc] init];
+            }
+            if(_arrNumbers == nil) {
+                _arrNumbers = [[NSMutableArray alloc] init];
+            }
+            // Add the dictionary to the array.
+            
+            _arrContactsData[i]=contactInfoDict;
+            _arrNumbers[i] = [self formatNumber:[contactInfoDict objectForKey:@"number"]];
+            
+            
+            
+            
+            
+        }
+        [self updateNumbers];
+    }
+    else {
+        [self performSegueWithIdentifier:@"showLogin" sender:self];
+    }
+    
+    
+    
     _syncContacts.hidden = YES;
+    
+    
+    
 
 
-
-}
+ }
 
 - (IBAction)logout:(id)sender {
     [PFUser logOut];
