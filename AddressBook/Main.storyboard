@@ -130,24 +130,6 @@
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="GDz-0w-qod">
-                                <rect key="frame" x="-12" y="256" width="332" height="30"/>
-                                <state key="normal" title="Send SMS Verification Code">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="Verify:" destination="5e8-3d-cUw" eventType="touchUpInside" id="KNS-D0-Zn5"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="j74-0X-KHk">
-                                <rect key="frame" x="60" y="256" width="183" height="30"/>
-                                <state key="normal" title="Enter Verification Code">
-                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
-                                </state>
-                                <connections>
-                                    <action selector="enterCode:" destination="5e8-3d-cUw" eventType="touchUpInside" id="dDo-4T-kdt"/>
-                                </connections>
-                            </button>
                             <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="+1" borderStyle="roundedRect" textAlignment="center" clearsOnBeginEditing="YES" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="lP5-uq-eMd">
                                 <rect key="frame" x="16" y="218" width="81" height="30"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
@@ -168,6 +150,15 @@
                                 </state>
                                 <connections>
                                     <action selector="LogIn:" destination="5e8-3d-cUw" eventType="touchUpInside" id="hYd-3b-8om"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="j74-0X-KHk">
+                                <rect key="frame" x="60" y="256" width="183" height="30"/>
+                                <state key="normal" title="Enter Verification Code">
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="enterCode:" destination="5e8-3d-cUw" eventType="touchUpInside" id="dDo-4T-kdt"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -195,7 +186,6 @@
                         <outlet property="numberTextField" destination="DgT-ug-TVl" id="2Oy-u1-1lc"/>
                         <outlet property="picker" destination="EWP-MU-9Z4" id="RKy-vc-glc"/>
                         <outlet property="verificationTextField" destination="dCM-KS-Vqp" id="Vs4-uH-SBc"/>
-                        <outlet property="verifynum" destination="GDz-0w-qod" id="pNj-LT-XZP"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="pL1-pq-c0a" userLabel="First Responder" sceneMemberID="firstResponder"/>

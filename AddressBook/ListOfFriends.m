@@ -2,6 +2,7 @@
 #import <Parse/Parse.h>
 #import <AddressBook/AddressBook.h>
 #import <AddressBookUI/AddressBookUI.h>
+
 @interface ListOfFriends ()
 {
     UIButton *addFriendButton;
@@ -273,7 +274,7 @@ else{
                  CFRelease(generalCFObject);
                  
                  [contactInfoDict setObject:(__bridge NSString *)generalCFObject2 forKey:@"lastName"];
-                 CFRelease(generalCFObject);
+                 CFRelease(generalCFObject2);
                  
                  ABMultiValueRef phoneNumbers = ABRecordCopyValue(person, kABPersonPhoneProperty);
                  
@@ -310,7 +311,7 @@ else{
                  
              }
              
-             [self Parse];
+      [self Parse];
              
 
      } else {
@@ -336,7 +337,7 @@ else{
              CFRelease(generalCFObject);
              
              [contactInfoDict setObject:(__bridge NSString *)generalCFObject2 forKey:@"lastName"];
-             CFRelease(generalCFObject);
+             CFRelease(generalCFObject2);
              
              ABMultiValueRef phoneNumbers = ABRecordCopyValue(person, kABPersonPhoneProperty);
              
@@ -372,13 +373,14 @@ else{
              
              
          }
-
            [self Parse];
      }
      else {
          [self performSegueWithIdentifier:@"showLogin" sender:self];
      }
     
+  
+
     _syncContacts.hidden = YES;
 
 

@@ -12,12 +12,16 @@
 	<dict>
 		<key>73796C3706AD62302796153A6F4767EC361A283D</key>
 		<string>https://github.com/jungthinkr/my-project.git</string>
+		<key>F3743FED3D54194FF61E3194666D69158C1AF16A</key>
+		<string>https://github.com/jungthinkr/my-project.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>AddressBook.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>73796C3706AD62302796153A6F4767EC361A283D</key>
+		<string>../../../my%20project</string>
+		<key>F3743FED3D54194FF61E3194666D69158C1AF16A</key>
 		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
@@ -25,9 +29,17 @@
 	<key>IDESourceControlProjectVersion</key>
 	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>73796C3706AD62302796153A6F4767EC361A283D</string>
+	<string>F3743FED3D54194FF61E3194666D69158C1AF16A</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>F3743FED3D54194FF61E3194666D69158C1AF16A</string>
+			<key>IDESourceControlWCCName</key>
+			<string>my-project</string>
+		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>

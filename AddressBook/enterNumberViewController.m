@@ -15,7 +15,6 @@
 @property (weak, nonatomic) IBOutlet UIButton *loginnum;
 @property (weak, nonatomic) IBOutlet UIButton *registernum;
 @property (strong, nonatomic) IBOutlet UIPickerView *picker;
-@property (weak, nonatomic) IBOutlet UIButton *verifynum;
 @property (weak, nonatomic) IBOutlet UITextField *verificationTextField;
 @property (weak, nonatomic) IBOutlet UIButton *entercode;
 @property (weak, nonatomic) IBOutlet UIButton *backButton;
@@ -34,7 +33,6 @@
 
     // Do any additional setup after loading the view.
     _picker.hidden = YES;
-    _verifynum.hidden = YES;
     _entercode.hidden = YES;
     _backButton.hidden = YES;
     _verificationTextField.hidden = YES;
@@ -874,7 +872,6 @@
     return mobileNumber;
 }
 
-
 -(NSInteger)getLength:(NSString*)mobileNumber
 {
     
@@ -899,14 +896,16 @@
     NSString *number = [self.numberTextField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
     NSString *usertext = [self formatNumber: number];
     NSString *password = @"password";
-    
+
     if ([number length] != 14) {
         UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Error!"
-                                                            message:@"You have to enter a number                                             e.g. (702) 123 4567"
+                                                            message:@"You have to enter a number                                             e.g. (702) 123-4567"
                                                            delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
         [alertView show];
     }
     else {
+
+        
  // begin query process
         PFQuery *query = [PFUser query];
         [query whereKey:@"username" equalTo:usertext];
@@ -915,12 +914,13 @@
 
         // if user exists
         if ([user objectForKey:@"username"] != nil) {
+            [PFUser logOut];
                     [PFUser logInWithUsernameInBackground:usertext password:password block:^(PFUser *user, NSError *error) {
                         if (error) {
                             UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:@"Error!"
                                                                                 message:[error.userInfo objectForKey:@"error"]
                                                                                delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
-                            [alertView show];
+                            [alertView show];   
                         }
                         else {
                             //begin to see if it has been verified already
@@ -931,70 +931,50 @@
     
         //if user does not exist
         else{
+
+            //create anonymous user
             [PFAnonymousUtils logInWithBlock:^(PFUser *user, NSError *error) {
                 if (error) {
                     NSLog(@"Anonymous login failed.");
                 } else {
                     NSLog(@"Anonymous user logged in.");
+                    NSDictionary *params = [NSDictionary dictionaryWithObject:usertext forKey:@"phoneNumber"];
+                    [PFCloud callFunctionInBackground:@"sendVerificationCode" withParameters:params block:^(id object, NSError *error) {
+                        NSString *message = @"Message Sent!";
+                        if (!error) {
+                            
+                            _registernum.hidden = YES;
+                            _loginnum.hidden = YES;
+                            _numberTextField.hidden = YES;
+                            _countryTextField.hidden = YES;
+                            _verificationTextField.hidden = NO;
+                            _backButton.hidden = NO;
+                            _entercode.hidden = NO;
+                            
+                        } else {
+                            message = @"There was an error!";
+                        }
+                        
+                        [[[UIAlertView alloc] initWithTitle:@""
+                                                    message:message
+                                                   delegate:nil
+                                          cancelButtonTitle:@"Ok"
+                                          otherButtonTitles:nil, nil] show];
+                        
+                    }];
+                    
+
                 }
             }];
 
-                    _registernum.hidden = YES;
-                    _loginnum.hidden = YES;
-                    _verifynum.hidden = NO;
-                    _numberTextField.hidden = YES;
-                    _countryTextField.hidden = YES;
-                    _verificationTextField.hidden = NO;
-                    _backButton.hidden = NO;
 
+ 
+          
 
         }
     }
     
 
-}
-
-- (IBAction)Verify:(id)sender {
-
-   
-    NSString *number = [self.numberTextField.text stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-    NSString *numberWithoutFormat = [self formatNumber: number];
-    
-
-
-    NSDictionary *params = [NSDictionary dictionaryWithObject:numberWithoutFormat forKey:@"phoneNumber"];
-    [PFCloud callFunctionInBackground:@"sendVerificationCode" withParameters:params block:^(id object, NSError *error) {
-        NSString *message = @"Message Sent!";
-        if (!error) {
-  
-            _numberTextField.hidden = YES;
-            _countryTextField.hidden = YES;
-            _verifynum.hidden = YES;
-            _entercode.hidden = NO;
-             _verificationTextField.hidden = NO;
-             //  [self.navigationController popToRootViewControllerAnimated:YES];
- 
-        } else {
-            message = @"There was an error!";
-        }
-        
-        [[[UIAlertView alloc] initWithTitle:@""
-                                    message:message
-                                   delegate:nil
-                          cancelButtonTitle:@"Ok"
-                          otherButtonTitles:nil, nil] show];
-      
-    }];
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 }
 
 - (IBAction)enterCode:(id)sender {
@@ -1048,7 +1028,6 @@ NSDictionary *params = [NSDictionary dictionaryWithObject:code forKey:@"phoneVer
     _backButton.hidden = YES;
     _registernum.hidden = NO;
     _loginnum.hidden = NO;
-    _verifynum.hidden = YES;
     _verificationTextField.hidden = YES;
     _numberTextField.hidden = NO;
     _countryTextField.hidden = NO;
