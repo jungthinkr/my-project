@@ -10,8 +10,6 @@
 	<string>AddressBook</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>73796C3706AD62302796153A6F4767EC361A283D</key>
-		<string>https://github.com/jungthinkr/my-project.git</string>
 		<key>F3743FED3D54194FF61E3194666D69158C1AF16A</key>
 		<string>https://github.com/jungthinkr/my-project.git</string>
 	</dict>
@@ -19,8 +17,6 @@
 	<string>AddressBook.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>73796C3706AD62302796153A6F4767EC361A283D</key>
-		<string>../../../my%20project</string>
 		<key>F3743FED3D54194FF61E3194666D69158C1AF16A</key>
 		<string>../..</string>
 	</dict>
@@ -38,15 +34,7 @@
 			<key>IDESourceControlWCCIdentifierKey</key>
 			<string>F3743FED3D54194FF61E3194666D69158C1AF16A</string>
 			<key>IDESourceControlWCCName</key>
-			<string>my-project</string>
-		</dict>
-		<dict>
-			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
-			<string>public.vcs.git</string>
-			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>73796C3706AD62302796153A6F4767EC361A283D</string>
-			<key>IDESourceControlWCCName</key>
-			<string>my%20project</string>
+			<string>my-project%205.03.40%20PM</string>
 		</dict>
 	</array>
 </dict>

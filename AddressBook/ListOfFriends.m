@@ -2,7 +2,7 @@
 #import <Parse/Parse.h>
 #import <AddressBook/AddressBook.h>
 #import <AddressBookUI/AddressBookUI.h>
-
+#import <POP/POP.h>
 @interface ListOfFriends ()
 {
     UIButton *addFriendButton;
@@ -11,13 +11,15 @@
 @property (weak, nonatomic) IBOutlet UILabel *refresh;
 @property (weak, nonatomic) IBOutlet UIButton *syncContacts;
 @property (strong, nonatomic) IBOutlet UIButton *addFriend;
+@property (strong, nonatomic) IBOutlet UIButton *syncContactsbutton;
+@property (strong, nonatomic) IBOutlet UISearchBar *searchbar;
 
+@property (strong,nonatomic) NSMutableArray *filteredSearchArray;
 @property (nonatomic, strong) NSMutableArray *arrContactsData;
 @property (nonatomic, strong) NSMutableArray *arrNumbers;
 @property (nonatomic, strong) NSMutableArray *insideFriends;
 @property (nonatomic, strong) NSMutableArray *outsideFriends;
-@property (nonatomic, strong) NSMutableArray *allFriends;
-@property (nonatomic, strong) NSMutableArray *indexfortable;
+@property (nonatomic, strong) NSMutableArray *names;
 @property (nonatomic, strong) ABPeoplePickerNavigationController *addressBookController;
 @end
 
@@ -33,11 +35,12 @@
     [super viewDidLoad];
     self.tableView.dataSource = self;
     self.tableView.delegate = self;
-
+    self.filteredSearchArray = [NSMutableArray arrayWithCapacity:[_arrContactsData count]];
 
 //PFUser *currentUser = [PFUser currentUser];
     if ([PFUser currentUser]) {
-        //NSLog(@"Current user: %@", currentUser.username);
+        NSLog(@"Current user: %@", [PFUser currentUser].username);
+        [self ListCheck];
     }
     else {
         [self performSegueWithIdentifier:@"showLogin" sender:self];
@@ -54,26 +57,35 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+#pragma mark - Search bar
+-(void)filterContentForSearchText:(NSString*)searchText scope:(NSString*)scope {
+    // Update the filtered array based on the search text and scope.
+    // Remove all objects from the filtered search array
+    [self.filteredSearchArray removeAllObjects];
+    // Filter the array using NSPredicate
+    NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF.name contains[c] %@",searchText];
+  self.filteredSearchArray = [NSMutableArray arrayWithArray:[_names filteredArrayUsingPredicate:predicate]];
+}
+-(BOOL)searchDisplayController:(UISearchDisplayController *)controller shouldReloadTableForSearchString:(NSString *)searchString
+{
+    [self filterContentForSearchText:searchString scope:[[self.searchDisplayController.searchBar scopeButtonTitles] objectAtIndex:[self.searchDisplayController.searchBar selectedScopeButtonIndex]]];
+    
+    return YES;
+}
+
+
 
 #pragma mark - GET CONTACTS FROM PARSE
 
 - (void)updateNumbers
 {
-    
+    [[PFUser currentUser] unpinInBackground];
 
         _insideFriends = [[NSMutableArray alloc] init];
         _outsideFriends = [[NSMutableArray alloc] init];
     
     NSUInteger index = 0;
-        
-/*
-    PFQuery *query = [PFUser query];
-    [query whereKey:@"username" containedIn: _arrNumbers];
-    [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
-        
-        NSLog(@"OBJECTS AFTER QUERY %@", objects);
-        
-    }];*/
+    
   
 
     for (id data in _arrContactsData)
@@ -83,14 +95,21 @@
     PFObject *user = [query2 getFirstObject];
     if ([user objectForKey:@"username"] != nil) {
         [_insideFriends addObject: data];
+        [[PFUser currentUser] addUniqueObject:data forKey: @"insideFriends"];
+        [[PFUser currentUser] saveInBackground];
         
     }
     else{
         [_outsideFriends addObject: data];
+        [[PFUser currentUser] addUniqueObject:data forKey: @"outsideFriends"];
+        [[PFUser currentUser] saveInBackground];
         
     }
+        [[PFUser currentUser] pinInBackground];
+
          index++;
     }// end for loop*/
+    
     NSLog(@"updatenumbers" );
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.tableView reloadData];
@@ -111,23 +130,62 @@
 }
 /*- (void)Parse
 {
+    PFObject *currentUser = [PFUser currentUser];
     NSLog(@"parse");
     for(id data in _arrContactsData)
     {
-        
-       
                 [[PFUser currentUser] addUniqueObject:data forKey: @"Contacts"];
                 [[PFUser currentUser] saveInBackground];
 
     }//end for loop
+    [[PFUser currentUser] saveEventually];
+    [currentUser pinInBackground];
     [self updateNumbers];
 }*/
--(void)getContacts
-{}
--(void)findRelation
+
+
+-(void)ListCheck
 {
+    PFQuery *query= [PFUser query];
+    [query whereKey:@"outsideFriends" equalTo:@0];
+    if (query == nil)
+    {
+        NSLog(@"It is empty");
+        
+    }
+    else
+    {
+        NSLog(@"It is not empty");
+        [self createList];
+        _syncContactsbutton.hidden = YES;
+    }
+}
+-(void)createList
+{
+    PFQuery *query = [PFUser query];
+    [query fromLocalDatastore];
+    PFObject *user = [query getFirstObject];
+    _insideFriends = [user objectForKey: @"insideFriends"];
+    _outsideFriends = [user objectForKey:@"outsideFriends"];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.tableView reloadData];
+    });
+    [self.refreshControl endRefreshing];
+    // open up refresh control
+    if(self.refreshControl == nil)
+    {
+        _refresh.hidden = NO;
+        self.refreshControl = [[UIRefreshControl alloc] init];
+        self.refreshControl.backgroundColor = [UIColor grayColor];
+        self.refreshControl.tintColor = [UIColor whiteColor];
+        [self.refreshControl addTarget:self
+                                action:@selector(syncContacts:)
+                      forControlEvents:UIControlEventValueChanged];
+    }
+  
 
 }
+
 #pragma mark - Hash number
 -(NSString*)formatNumber:(NSString*)mobileNumber
 {
@@ -191,9 +249,14 @@ else{
     // 5. Finally return
     return headerView;
 }
+
+
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 2;
+    if(tableView == self.searchDisplayController.searchResultsTableView)
+    {return 1;}
+    else
+    {return 2;}
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -202,6 +265,9 @@ else{
         {
             return [_insideFriends count];
         }
+    else if (tableView == self.searchDisplayController.searchResultsTableView) {
+        return [_filteredSearchArray count];
+    }
     else
         {
             return [_outsideFriends count];
@@ -210,9 +276,20 @@ else{
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-
-    NSUInteger section = [indexPath section];
+    
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"Cell" forIndexPath:indexPath];
+
+    if (cell == nil)
+    {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"Cell"];
+    }
+    NSUInteger section = [indexPath section];
+    if(tableView == self.searchDisplayController.searchResultsTableView) {
+    cell.textLabel.text = [self.filteredSearchArray objectAtIndex:indexPath.row];
+        return cell;
+    }
+    else{
+
     if(section == 0)
     {
         NSDictionary *contactInfoDict = [_insideFriends objectAtIndex:indexPath.row];
@@ -243,7 +320,7 @@ else{
 
         return cell;
     }
-        
+        }
 }
 
 #pragma mark - get Contacts
@@ -309,12 +386,22 @@ else{
                     if(_arrNumbers == nil) {
                         _arrNumbers = [[NSMutableArray alloc] init];
                     }
-
+                    NSLog(@"hiiii");
+                    if(_names == nil ) {
+                        _names = [[NSMutableArray alloc] init];
+                    }
+                    _names[i] = @"%@ %@",[contactInfoDict objectForKey: @"firstName"],[contactInfoDict objectForKey: @"lastName"];
                     // Add the dictionary to the array.
-                    _arrContactsData[i]=contactInfoDict;
-                    _arrNumbers[i] = [self formatNumber:[contactInfoDict objectForKey:@"number"]];
+
+                    _arrNumbers[i]=contactInfoDict;
+
                     
+                    NSSortDescriptor *sortByName = [NSSortDescriptor sortDescriptorWithKey:@"firstName"
+                                                                                 ascending:YES];
+                    NSMutableArray *sortDescriptors = [NSMutableArray arrayWithObject:sortByName];
+                    _arrContactsData = [_arrNumbers sortedArrayUsingDescriptors:sortDescriptors];
                     
+
                     
                     
                     
@@ -383,12 +470,18 @@ else{
             if(_arrNumbers == nil) {
                 _arrNumbers = [[NSMutableArray alloc] init];
             }
+            if(_names == nil ) {
+                _names = [[NSMutableArray alloc] init];
+            }
+            _names[i] = @"%@ %@",[contactInfoDict objectForKey: @"firstName"],[contactInfoDict objectForKey: @"lastName"];
             // Add the dictionary to the array.
+         
+            _arrNumbers[i]=contactInfoDict;
             
-            _arrContactsData[i]=contactInfoDict;
-            _arrNumbers[i] = [self formatNumber:[contactInfoDict objectForKey:@"number"]];
-            
-            
+            NSSortDescriptor *sortByName = [NSSortDescriptor sortDescriptorWithKey:@"firstName"
+                                                                         ascending:YES];
+            NSMutableArray *sortDescriptors = [NSMutableArray arrayWithObject:sortByName];
+            _arrContactsData = [_arrNumbers sortedArrayUsingDescriptors:sortDescriptors];
             
             
             
@@ -399,7 +492,7 @@ else{
         [self performSegueWithIdentifier:@"showLogin" sender:self];
     }
     
-    
+    NSLog(@"%@",_arrContactsData[0]);
     
     _syncContacts.hidden = YES;
     

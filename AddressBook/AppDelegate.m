@@ -2,15 +2,19 @@
 
 #import "AppDelegate.h"
 #import <Parse/Parse.h>
+
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-    // Override point for customization after application launch.
+    [Parse enableLocalDatastore];
+
+          // Override point for customization after application launch.
     [Parse setApplicationId:@"7MUP5JBM63OP7VW0BoqV4RBc7dQfJaR1QTSpdQ2x"
                 clientKey:@"wnic2XDXTIvYJ36pV3sscQxK3qG4gB9qdYckkaYU"];
-    
 
+    
+    
     return YES;
 }
 							
